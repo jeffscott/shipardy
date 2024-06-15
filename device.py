@@ -1,9 +1,5 @@
-import sys
-import evdev
 from evdev import InputDevice, list_devices
-import select
 from pprint import pprint as pp
-
 
 
 class DeviceManager:
@@ -13,7 +9,7 @@ class DeviceManager:
         self.devices = {}
         device_list = [InputDevice(path) for path in list_devices()]
         print(device_list)
-        self.devices= {device.name.lower(): {"input_device": device, "contestant_name": None} for device in device_list}
+        self.devices= {device.name: {"input_device": device, "contestant_name": None} for device in device_list}
         self.contestant_devices = None # Used to pass to select module for I/O disambiguation
 
 
@@ -23,7 +19,7 @@ class DeviceManager:
         Assign a device number to the contestant name. Update the list of active contestant devices.
         """
         try:
-            self.devices[device_name.lower()]['contestant_name'] = contestant_name
+            self.devices[device_name]['contestant_name'] = contestant_name
         except KeyError:
             print(f"No device name: {device_name}")
 
@@ -31,7 +27,7 @@ class DeviceManager:
 
     def remove_contestant(self, contestant_name: str, device_name: str) -> None:
         
-        self.devices[device_name.lower()]['contestant_name'] = None
+        self.devices[device_name]['contestant_name'] = None
         self._update_contestant_device_list()
 
 
