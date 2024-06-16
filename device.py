@@ -12,25 +12,25 @@ class DeviceManager:
         
         self.devices = {}
         self.device_list = [InputDevice(path) for path in list_devices()]
-        self.devices= {device.name: {"input_device": device, "contestant_name": None} for device in self.device_list}
+        self.devices= {device.phys: {"input_device": device, "contestant_name": None} for device in self.device_list}
         self.contestant_devices = None # Used to pass to select module for I/O disambiguation
 
 
-    def assign_contestant(self, contestant_name: str, device_name: str) -> None:
+    def assign_contestant(self, contestant_name: str, device_phys: str) -> None:
 
         """
         Assign a device number to the contestant name. Update the list of active contestant devices.
         """
         try:
-            self.devices[device_name]['contestant_name'] = contestant_name
+            self.devices[device_phys]['contestant_name'] = contestant_name
         except KeyError:
-            print(f"No device name: {device_name}")
+            print(f"No device name: {device_phys}")
 
         self. _update_contestant_device_list()
 
-    def remove_contestant(self, contestant_name: str, device_name: str) -> None:
+    def remove_contestant(self, contestant_name: str, device_phys: str) -> None:
         
-        self.devices[device_name]['contestant_name'] = None
+        self.devices[device_phys]['contestant_name'] = None
         self._update_contestant_device_list()
 
 
@@ -57,7 +57,7 @@ class DeviceManager:
 
     def list_available_devices(self) -> None:
 
-        pp([device.name for device in self.device_list])
+        pp([(device.name, device.phys) for device in self.device_list])
 
     def print_contestants(self) -> None:
 
