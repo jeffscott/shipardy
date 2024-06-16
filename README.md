@@ -48,4 +48,5 @@ sudo ~/python-environments/shipardy/bin/python shipardy.py -p
  'Power Button']
 
 ```
-Replace the names in the variable `mice_names` with the names of the input devices above, in this case `logitech usb optical mouse` and `logitech mx vertical`.
+Replace the names in the variable `contestant_name` with the names of the input devices above
+```
