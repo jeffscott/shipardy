@@ -19,11 +19,14 @@ def main(args):
         exit()
 
     contestant_map = {
-        'Logitech MX Vertical': 'Djeff Djon Dert Muv',
-        'Logitech USB Optical Mouse': 'Cool Aunt Leez',
-        'Logitech Wireless Receiver Mouse': 'Snaptician'
+        'usb-0000:0e:00.0-2.4/input0': 'Player1',
+        'usb-0000:0e:00.0-2.3/input0': 'Player2',
+        'usb-0000:0e:00.0-2.2/input0': 'Player3',
+        'usb-0000:0e:00.0-3/input2:1': 'Player4',
+
     }
     for device, contestant in contestant_map.items():
+        print(device)
         dev_manager.assign_contestant(contestant, device) 
     dev_manager.print_contestants()
 
@@ -52,8 +55,8 @@ def main(args):
             for event in device.read():
                 if event.type == ecodes.EV_KEY and event.value == 1:  # 1 is key down
                     print(event)
-                    if buzzin_active is True and device.name not in buzz_order:
-                        buzz_order.append(device.name)
+                    if buzzin_active is True and device.phys not in buzz_order:
+                        buzz_order.append(device.phys)
                         print(buzz_order)
                     
                         if len(buzz_order) == len(contestant_map.keys()):
@@ -85,8 +88,8 @@ def main(args):
                 board.display_buzzer_window()
                 print('BUZZIN CLOSED!', flush=True)
         else:
-            for c, device_name in enumerate(buzz_order):
-                board.display_player_name(contestant_map[device_name], c)
+            for c, device_phys in enumerate(buzz_order):
+                board.display_player_name(contestant_map[device_phys], c)
 
 
 
