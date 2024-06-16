@@ -4,12 +4,15 @@ from pprint import pprint as pp
 
 class DeviceManager:
 
+    """
+    This class finds the input devices connected to a machine and displays the info. Contestants are assigned
+    to devices via dictionary entry.
+    """
     def __init__(self) -> None:
         
         self.devices = {}
-        device_list = [InputDevice(path) for path in list_devices()]
-        print(device_list)
-        self.devices= {device.name: {"input_device": device, "contestant_name": None} for device in device_list}
+        self.device_list = [InputDevice(path) for path in list_devices()]
+        self.devices= {device.name: {"input_device": device, "contestant_name": None} for device in self.device_list}
         self.contestant_devices = None # Used to pass to select module for I/O disambiguation
 
 
@@ -52,6 +55,9 @@ class DeviceManager:
             print(f"  DeviceType: {device['input_device']}")
             print(f"  DeviceCont: {device['contestant_name']}\n")
 
+    def list_available_devices(self) -> None:
+
+        pp([device.name for device in self.device_list])
 
     def print_contestants(self) -> None:
 

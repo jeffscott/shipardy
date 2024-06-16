@@ -1,6 +1,7 @@
 import select
 import time
 import pygame as pg
+import argparse
 from gamescreen import GameBoard
 from evdev import ecodes
 from pprint import pprint as pp
@@ -10,44 +11,56 @@ from device import DeviceManager
 BUZZER_TIMEOUT_SEC = 10
 
 
-if __name__ == "__main__":
-
-    contestant_map = {
-        'Logitech MX Vertical': 'Snaptician',
-        'Logitech USB Optical Mouse': 'Cool Aunt Leez',
-        'Logitech Wireless Receiver Mouse': 'Djeff Djon Dert Muv'
-    }
+def main(args):
 
     dev_manager = DeviceManager()
-    dev_manager.print_devices()
-    dev_manager.print_contestants()
+    if args.print_input_devices:
+        dev_manager.list_available_devices()
+        exit()
+
+    contestant_map = {
+        'Logitech MX Vertical': 'Djeff Djon Dert Muv',
+        'Logitech USB Optical Mouse': 'Cool Aunt Leez',
+        'Logitech Wireless Receiver Mouse': 'Snaptician'
+    }
     for device, contestant in contestant_map.items():
         dev_manager.assign_contestant(contestant, device) 
     dev_manager.print_contestants()
-    print(dev_manager.get_contestant_devices())
 
     pg.init()
-
     board = GameBoard()
 
     running = True
     buzzin_active = False 
     buzz_order = []
-    current_contestant = None
     time_start = 0
-    time_end = 0
     while running:
 
-        r, w, x = select.select(dev_manager.get_contestant_devices(), [], [], 0.01)
 
         """ 
-        EV_KEY is button press value 1 is down
+        EV_KEY is button press value, 1 is down
 
         When round is active, if any button is pressed, append the device
         if it's not already in the list
 
-        After the buzz in is over, stop checking for new device events
+        After the buzz in is over, stop checking for new device events and
+        display the order of contestant buzzin
         """
+        # GET THE CLICK ORDER OF EACH SUPPORTED DEVICE AFTER BUZZIN STARTS
+        r, w, x = select.select(dev_manager.get_contestant_devices(), [], [], 0.01)
+        for device in r:
+            for event in device.read():
+                if event.type == ecodes.EV_KEY and event.value == 1:  # 1 is key down
+                    print(event)
+                    if buzzin_active is True and device.name not in buzz_order:
+                        buzz_order.append(device.name)
+                        print(buzz_order)
+                    
+                        if len(buzz_order) == len(contestant_map.keys()):
+                            print('BUZZIN CLOSED!', flush=True)
+                            board.display_buzzer_window()
+                            buzzin_active = False
+
         for event in pg.event.get():
 
             if event.type == pg.KEYDOWN and event.key == pg.K_q: 
@@ -62,7 +75,7 @@ if __name__ == "__main__":
                 board.display_buzzer_active()
 
 
-            if event.type == pygame.QUIT:
+            if event.type == pg.QUIT:
                 running = False
 
         # TIMEOUT AFTER SOME PERIOD
@@ -77,17 +90,12 @@ if __name__ == "__main__":
 
 
 
-        # GET THE CLICK ORDER OF EACH SUPPORTED DEVICE AFTER BUZZIN STARTS
-        for device in r:
-            for event in device.read():
-                if event.type == ecodes.EV_KEY and event.value == 1:  # 1 is key down
-                    print(event)
-                    if buzzin_active is True and device.name not in buzz_order:
-                        buzz_order.append(device.name)
-                        print(buzz_order)
-                    
-                        if len(buzz_order) == len(contestant_map.keys()):
-                            print('BUZZIN CLOSED!', flush=True)
-                            board.display_buzzer_window()
-                            buzzin_active = False
 
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Shipardy buzzer program")
+
+    parser.add_argument("--print-input-devices", "-p", action='store_true', help="Print the available devices for use")
+    args = parser.parse_args()
+
+    main(args)
