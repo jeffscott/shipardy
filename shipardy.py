@@ -1,68 +1,101 @@
-import pygame
-import sys
-import evdev
-from evdev import InputDevice, ecodes, list_devices
 import select
+import time
+import pygame as pg
+import argparse
+from gamescreen import GameBoard
+from evdev import ecodes
 from pprint import pprint as pp
-# Initialize Pygame
-pygame.init()
 
-# Set up the display
-screen = pygame.display.set_mode((640, 480))
-pygame.display.set_caption('Jeopardy Buzzer System')
+from device import DeviceManager
 
-# Define contestant names
-contestants = ['Mouse 1', 'Mouse 2']
+BUZZER_TIMEOUT_SEC = 10
 
-# To store the order of buzzes
-buzz_order = []
 
-# Find mouse devices
-devices = [InputDevice(path) for path in list_devices()]
-devices_with_names = [(device, device.name.lower()) for device in devices]
-pp(devices_with_names)
-mice_names = ['logitech mx vertical', 'logitech usb optical mouse']
-mice = [device for device in devices if device.name.lower() in mice_names]
+def main(args):
 
-if len(mice) < 2:
-    print("Please connect at least two mice.")
-    sys.exit()
+    dev_manager = DeviceManager()
+    if args.print_input_devices:
+        dev_manager.list_available_devices()
+        exit()
 
-mouse1, mouse2 = mice[0], mice[1]
+    contestant_map = {
+        'Logitech MX Vertical': 'Djeff Djon Dert Muv',
+        'Logitech USB Optical Mouse': 'Cool Aunt Leez',
+        'Logitech Wireless Receiver Mouse': 'Snaptician'
+    }
+    for device, contestant in contestant_map.items():
+        dev_manager.assign_contestant(contestant, device) 
+    dev_manager.print_contestants()
 
-# Function to display the first buzzer
-def display_first_buzzer(name):
-    screen.fill((0, 0, 0))
-    font = pygame.font.Font(None, 74)
-    text = font.render(name, True, (255, 255, 255))
-    screen.blit(text, (320 - text.get_width() // 2, 240 - text.get_height() // 2))
-    pygame.display.flip()
+    pg.init()
+    board = GameBoard()
 
-# Start the game loop
-running = True
-while running:
-    # Use select to handle multiple devices
-    r, w, x = select.select([mouse1, mouse2], [], [], 0.01)
+    running = True
+    buzzin_active = False 
+    buzz_order = []
+    time_start = 0
+    while running:
 
-    for device in r:
-        for event in device.read():
-            if event.type == ecodes.EV_KEY and event.value == 1:  # 1 is key down
-                if device == mouse1 and 'Mouse 1' not in buzz_order:
-                    buzz_order.append('Mouse 1')
-                    if len(buzz_order) == 1:
-                        print(f"The first person to buzz in is: Mouse 1")
-                        display_first_buzzer('Mouse 1')
-                elif device == mouse2 and 'Mouse 2' not in buzz_order:
-                    buzz_order.append('Mouse 2')
-                    if len(buzz_order) == 1:
-                        print(f"The first person to buzz in is: Mouse 2")
-                        display_first_buzzer('Mouse 2')
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        """ 
+        EV_KEY is button press value, 1 is down
 
-    pygame.time.wait(10)
+        When round is active, if any button is pressed, append the device
+        if it's not already in the list
 
-pygame.quit()
-sys.exit()
+        After the buzz in is over, stop checking for new device events and
+        display the order of contestant buzzin
+        """
+        # GET THE CLICK ORDER OF EACH SUPPORTED DEVICE AFTER BUZZIN STARTS
+        r, w, x = select.select(dev_manager.get_contestant_devices(), [], [], 0.01)
+        for device in r:
+            for event in device.read():
+                if event.type == ecodes.EV_KEY and event.value == 1:  # 1 is key down
+                    print(event)
+                    if buzzin_active is True and device.name not in buzz_order:
+                        buzz_order.append(device.name)
+                        print(buzz_order)
+                    
+                        if len(buzz_order) == len(contestant_map.keys()):
+                            print('BUZZIN CLOSED!', flush=True)
+                            board.display_buzzer_window()
+                            buzzin_active = False
+
+        for event in pg.event.get():
+
+            if event.type == pg.KEYDOWN and event.key == pg.K_q: 
+                running = False
+            # START BUZZIN
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                print('BUZZER OPEN!')
+                buzzin_active = True
+                buzz_order = []
+                time_start = time.time()
+                board.display_buzzer_window()
+                board.display_buzzer_active()
+
+
+            if event.type == pg.QUIT:
+                running = False
+
+        # TIMEOUT AFTER SOME PERIOD
+        if buzzin_active:
+            if time.time() - time_start > BUZZER_TIMEOUT_SEC:
+                buzzin_active = False
+                board.display_buzzer_window()
+                print('BUZZIN CLOSED!', flush=True)
+        else:
+            for c, device_name in enumerate(buzz_order):
+                board.display_player_name(contestant_map[device_name], c)
+
+
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Shipardy buzzer program")
+
+    parser.add_argument("--print-input-devices", "-p", action='store_true', help="Print the available devices for use")
+    args = parser.parse_args()
+
+    main(args)

@@ -10,7 +10,7 @@ pip install -r requirements.txt
 ```
 
 ## Running
-You need to run the script as root for the devices to be detected use `sudo`. You can explicitly run the python version in the virtual environment:
+You need to run the script as root for the devices to be detected use `sudo`. You can explicitly run the python version in the virtual environment. This path will change depending on where your virtual environment is.
 
 ```
 sudo ~/python-environments/shipardy/bin/python shipardy.py
@@ -18,29 +18,35 @@ sudo ~/python-environments/shipardy/bin/python shipardy.py
 
 ## Multiple Mice Setup
 
-Run the script to get the mouse names, this is the devices in `/dev/input`
+Run the script to get the mouse names, this is the devices in `/dev/input` and you can print out what the program sees via:
 ```
-[(InputDevice('/dev/input/event7'), 'logitech usb optical mouse'),
- (InputDevice('/dev/input/event17'),
-  'input-remapper kinesis corporation kb800hm kinesis freestyle2 for mac '
-  'forwarded'),
- (InputDevice('/dev/input/event16'), 'input-remapper keyboard'),
- (InputDevice('/dev/input/event15'), 'hda nvidia hdmi/dp,pcm=9'),
- (InputDevice('/dev/input/event14'), 'hda nvidia hdmi/dp,pcm=8'),
- (InputDevice('/dev/input/event13'), 'hda nvidia hdmi/dp,pcm=7'),
- (InputDevice('/dev/input/event12'), 'hda nvidia hdmi/dp,pcm=3'),
- (InputDevice('/dev/input/event10'), 'hd-audio generic hdmi/dp,pcm=9'),
- (InputDevice('/dev/input/event9'), 'hd-audio generic hdmi/dp,pcm=8'),
- (InputDevice('/dev/input/event8'), 'hd-audio generic hdmi/dp,pcm=7'),
- (InputDevice('/dev/input/event6'), 'hd-audio generic hdmi/dp,pcm=3'),
- (InputDevice('/dev/input/event5'), 'logitech mx vertical'),
- (InputDevice('/dev/input/event4'),
-  'kinesis corporation kb800hm kinesis freestyle2 for mac'),
- (InputDevice('/dev/input/event3'),
-  'kinesis corporation kb800hm kinesis freestyle2 for mac'),
- (InputDevice('/dev/input/event11'), 'msi mystic light '),
- (InputDevice('/dev/input/event2'), 'video bus'),
- (InputDevice('/dev/input/event1'), 'power button'),
- (InputDevice('/dev/input/event0'), 'power button')]
+sudo ~/python-environments/shipardy/bin/python shipardy.py -p
 ```
-Replace the names in the variable `mice_names` with the names of the input devices above, in this case `logitech usb optical mouse` and `logitech mx vertical`.
+
+```
+['Logitech Wireless Receiver Mouse',
+ 'Sony PLAYSTATION(R)3 Controller',
+ 'Sony PLAYSTATION(R)3 Controller Motion Sensors',
+ 'Logitech USB Optical Mouse',
+ 'input-remapper KINESIS CORPORATION KB800HM Kinesis Freestyle2 for Mac '
+ 'forwarded',
+ 'input-remapper keyboard',
+ 'HDA NVidia HDMI/DP,pcm=9',
+ 'HDA NVidia HDMI/DP,pcm=8',
+ 'HDA NVidia HDMI/DP,pcm=7',
+ 'HDA NVidia HDMI/DP,pcm=3',
+ 'HD-Audio Generic HDMI/DP,pcm=9',
+ 'HD-Audio Generic HDMI/DP,pcm=8',
+ 'HD-Audio Generic HDMI/DP,pcm=7',
+ 'HD-Audio Generic HDMI/DP,pcm=3',
+ 'Logitech MX Vertical',
+ 'KINESIS CORPORATION KB800HM Kinesis Freestyle2 for Mac',
+ 'KINESIS CORPORATION KB800HM Kinesis Freestyle2 for Mac',
+ 'MSI MYSTIC LIGHT ',
+ 'Video Bus',
+ 'Power Button',
+ 'Power Button']
+
+```
+Replace the names in the variable `contestant_name` with the names of the input devices above
+```
